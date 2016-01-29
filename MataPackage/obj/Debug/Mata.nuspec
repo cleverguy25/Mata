@@ -1,13 +1,14 @@
 <?xml version="1.0"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>Mata</id>
-    <version>0.8.0</version>
+    <version>0.8.0-alpha</version>
     <title>Mata Data to POCO Mapping</title>
     <authors>cleve.littlefield</authors>
     <owners>cleve.littlefield</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Easily map IDataRecord to Poco objects.</description>
+    <description>Easily map data from SqlDataReader to Poco objects.  You can use SqlDataReader that you already know, and still have an easy to maintain transformation to POCO objects.</description>
     <summary>Mata Data to POCO Mapping</summary>
     <copyright>Copyright © Palador Open Source</copyright>
     <tags>Mata SqlDataReader POCO Micro ORM</tags>
