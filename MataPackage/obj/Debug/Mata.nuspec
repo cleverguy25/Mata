@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Mata</id>
+    <version>0.8.0</version>
+    <title>Mata Data to POCO Mapping</title>
+    <authors>cleve.littlefield</authors>
+    <owners>cleve.littlefield</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Easily map IDataRecord to Poco objects.</description>
+    <summary>Mata Data to POCO Mapping</summary>
+    <copyright>Copyright © Palador Open Source</copyright>
+    <tags>Mata SqlDataReader POCO Micro ORM</tags>
+  </metadata>
+  <files>
+    <file src="C:\Palador\OpenSource\Mata\Mata\bin\Debug\Mata.dll" target="lib\net461\Mata.dll" exclude="" />
+    <file src="C:\Palador\OpenSource\Mata\Mata\bin\Debug\Mata.pdb" target="lib\net461\Mata.pdb" exclude="" />
+  </files>
+</package>

@@ -1,0 +1,10 @@
+﻿
+/packages
+/TestResults
+*.user
+/.vs
+/Mata/bin
+/Mata/obj
+/Mata.Test/bin
+/Mata.Test/obj
+/MataPackage/bin

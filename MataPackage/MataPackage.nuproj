@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|AnyCPU">
+      <Configuration>Debug</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|AnyCPU">
+      <Configuration>Release</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>922a2600-c1c0-4a74-9cee-a9204547775f</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NuProjPath Condition=" '$(NuProjPath)' == '' ">$(MSBuildExtensionsPath)\NuProj\</NuProjPath>
+  </PropertyGroup>
+  <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
+  <PropertyGroup Label="Configuration">
+    <Id>Mata</Id>
+    <Version>0.8.0-alpha</Version>
+    <Title>Mata Data to POCO Mapping</Title>
+    <Authors>cleve.littlefield</Authors>
+    <Owners>cleve.littlefield</Owners>
+    <Summary>Mata Data to POCO Mapping</Summary>
+    <Description>Easily map data from SqlDataReader to Poco objects.  You can use SqlDataReader that you already know, and still have an easy to maintain transformation to POCO objects.</Description>
+    <ReleaseNotes>
+    </ReleaseNotes>
+    <ProjectUrl>
+    </ProjectUrl>
+    <LicenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</LicenseUrl>
+    <Copyright>Copyright © Palador Open Source</Copyright>
+    <Tags>Mata SqlDataReader POCO Micro ORM</Tags>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mata\Mata.csproj" />
+  </ItemGroup>
+  <Import Project="$(NuProjPath)\NuProj.targets" />
+</Project>
