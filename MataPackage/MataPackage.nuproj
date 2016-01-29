@@ -27,8 +27,7 @@
     <Description>Easily map data from SqlDataReader to Poco objects.  You can use SqlDataReader that you already know, and still have an easy to maintain transformation to POCO objects.</Description>
     <ReleaseNotes>
     </ReleaseNotes>
-    <ProjectUrl>
-    </ProjectUrl>
+    <ProjectUrl>https://github.com/cleverguy25/Mata/wiki</ProjectUrl>
     <LicenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</LicenseUrl>
     <Copyright>Copyright © Palador Open Source</Copyright>
     <Tags>Mata SqlDataReader POCO Micro ORM</Tags>
