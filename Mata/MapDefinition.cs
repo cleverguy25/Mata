@@ -13,7 +13,12 @@ namespace Mata
 
     public class MapDefinition<T>
     {
-        private Func<IMap<T>> create;
+        private readonly Lazy<Func<IMap<T>>> create;
+
+        public MapDefinition()
+        {
+            this.create = new Lazy<Func<IMap<T>>>(this.GenerateMapCreationFunction);
+        }
 
         public string UniqueId { get; } = Guid.NewGuid().ToString();
 
@@ -50,9 +55,7 @@ namespace Mata
 
         public IMap<T> CreateMap()
         {
-            this.CreateMapIfNeeded();
-
-            return this.create();
+            return this.create.Value();
         }
 
         private static PropertyInfo GetProperty<TValue>(Expression<Func<T, TValue>> selector)
@@ -145,13 +148,10 @@ namespace Mata
             this.FieldMapDefinitions[destinationProperty] = fieldMapDefinition;
         }
 
-        private void CreateMapIfNeeded()
+        private Func<IMap<T>> GenerateMapCreationFunction()
         {
-            if (this.create == null)
-            {
-                var generator = new MapEmit<T>(this);
-                this.create = generator.Generate();
-            }
+            var generator = new MapEmit<T>(this);
+            return generator.Generate();
         }
     }
 }
