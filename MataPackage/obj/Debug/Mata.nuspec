@@ -2,14 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>Mata</id>
-    <version>0.8.0-alpha</version>
+    <version>0.8.2-alpha</version>
     <title>Mata Data to POCO Mapping</title>
     <authors>cleve.littlefield</authors>
     <owners>cleve.littlefield</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
     <projectUrl>https://github.com/cleverguy25/Mata/wiki</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Easily map data from SqlDataReader to Poco objects.  You can use SqlDataReader that you already know, and still have an easy to maintain transformation to POCO objects.</description>
+    <description>Easily map data from DbDataReader to Poco objects or Poco to DbCommand parameters.  You can use DbDataReader/DbCommand that you already know, and still have an easy to maintain transformation to/from POCO objects.</description>
     <summary>Mata Data to POCO Mapping</summary>
     <copyright>Copyright © Palador Open Source</copyright>
     <tags>Mata SqlDataReader POCO Micro ORM</tags>

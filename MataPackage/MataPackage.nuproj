@@ -19,12 +19,12 @@
   <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
   <PropertyGroup Label="Configuration">
     <Id>Mata</Id>
-    <Version>0.8.0-alpha</Version>
+    <Version>0.8.2-alpha</Version>
     <Title>Mata Data to POCO Mapping</Title>
     <Authors>cleve.littlefield</Authors>
     <Owners>cleve.littlefield</Owners>
     <Summary>Mata Data to POCO Mapping</Summary>
-    <Description>Easily map data from SqlDataReader to Poco objects.  You can use SqlDataReader that you already know, and still have an easy to maintain transformation to POCO objects.</Description>
+    <Description>Easily map data from DbDataReader to Poco objects or Poco to DbCommand parameters.  You can use DbDataReader/DbCommand that you already know, and still have an easy to maintain transformation to/from POCO objects.</Description>
     <ReleaseNotes>
     </ReleaseNotes>
     <ProjectUrl>https://github.com/cleverguy25/Mata/wiki</ProjectUrl>
