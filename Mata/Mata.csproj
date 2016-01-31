@@ -51,12 +51,16 @@
     </Compile>
     <Compile Include="DataRecordExtensions.cs" />
     <Compile Include="DataReaderExtensions.cs" />
+    <Compile Include="DbCommandExtensions.cs" />
+    <Compile Include="Emit\CommandExtensionMethods.cs" />
     <Compile Include="FieldMapDefinition.cs" />
     <Compile Include="IMap.cs" />
     <Compile Include="MapDefinition.cs" />
     <Compile Include="Emit\MapEmit.cs" />
     <Compile Include="Emit\MapEmitAssembly.cs" />
     <Compile Include="Emit\MapEmitDebugInfo.cs" />
+    <Compile Include="ParameterCache.cs" />
+    <Compile Include="ParameterSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeExtensions.cs" />
   </ItemGroup>

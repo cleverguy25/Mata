@@ -12,5 +12,7 @@ namespace Mata
         void LoadOrdinals(IDataRecord reader);
 
         void Load(T model, IDataRecord reader);
+
+        void LoadParameters(IDbCommand command, T model);
     }
 }

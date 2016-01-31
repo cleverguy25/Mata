@@ -31,6 +31,8 @@ namespace Mata.Emit
 
         private TypeBuilder typeBuilder;
 
+        private MethodBuilder loadParametersMethod;
+
         public MapEmit(MapDefinition<T> mapDefinition)
         {
             this.mapDefinition = mapDefinition;
@@ -48,6 +50,7 @@ namespace Mata.Emit
             this.CreateDefaultConstructor();
             this.CreateLoadOrdinalsMethod();
             this.CreateLoadMethod();
+            this.CreateLoadParametersMethod();
             this.ImplementInterface();
             var type = this.typeBuilder.CreateType();
             this.mapEmitDebugInfo?.AddDebugEndFile();
@@ -205,6 +208,9 @@ namespace Mata.Emit
 
             var loadInterface = typeof(IMap<T>).GetMethod("Load");
             this.typeBuilder.DefineMethodOverride(this.loadMethod, loadInterface);
+
+            var loadParametersInterface = typeof(IMap<T>).GetMethod("LoadParameters");
+            this.typeBuilder.DefineMethodOverride(this.loadParametersMethod, loadParametersInterface);
         }
 
         private void CreateLoadOrdinalsMethod()
@@ -225,6 +231,17 @@ namespace Mata.Emit
             this.loadMethod.DefineParameter(2, ParameterAttributes.None, "reader");
 
             this.EmitLoadMethod();
+        }
+
+        private void CreateLoadParametersMethod()
+        {
+            var parameterTypes = new[] { typeof(IDbCommand), typeof(T) };
+            this.loadParametersMethod = this.DefineVoidMethod("LoadParameters", parameterTypes);
+
+            this.loadMethod.DefineParameter(1, ParameterAttributes.None, "command");
+            this.loadMethod.DefineParameter(2, ParameterAttributes.None, "model");
+
+            this.EmitLoadParametersMethod();
         }
 
         private MethodBuilder DefineVoidMethod(string methodName, Type[] parameterTypes)
@@ -249,6 +266,56 @@ namespace Mata.Emit
             code.Emit(OpCodes.Ret);
         }
 
+        private void EmitLoadParametersMethod()
+        {
+            this.mapEmitDebugInfo?.AddDebugLoadParametersDeclaration();
+            var code = this.loadParametersMethod.GetILGenerator();
+
+            LocalBuilder parametersLocal = null;
+            var deriveParameters = this.mapDefinition.DeriveParameters;
+            if (deriveParameters)
+            {
+                parametersLocal = this.EmitDeriveParameters(code);
+            }
+
+            foreach (var field in this.mapDefinition.FieldMapDefinitions)
+            {
+                this.EmitParameter(field.Value, code, parametersLocal);
+            }
+
+            this.mapEmitDebugInfo?.AddDebugEndMethod(code);
+            code.Emit(OpCodes.Ret);
+        }
+
+        private void EmitParameter(
+            FieldMapDefinition fieldDefinition,
+            ILGenerator code,
+            LocalBuilder parametersLocal)
+        {
+            var sourceColumn = fieldDefinition.SourceColumn;
+            sourceColumn = sourceColumn.StartsWith("@") ? sourceColumn : $"@{sourceColumn}";
+            if (parametersLocal == null)
+            {
+                this.EmitAddParameter(code, fieldDefinition, sourceColumn);
+            }
+            else
+            {
+                this.EmitSetParameter(code, fieldDefinition, parametersLocal, sourceColumn);
+            }
+        }
+
+        private LocalBuilder EmitDeriveParameters(ILGenerator code)
+        {
+            this.mapEmitDebugInfo?.AddDebugDeriveParameters(code);
+            var parametersLocal = code.DeclareLocal(typeof(ParameterSet));
+
+            this.mapEmitDebugInfo?.SetLocalVariableName(parametersLocal);
+            code.Emit(OpCodes.Ldarg_1);
+            code.Emit(OpCodes.Call, MapEmitAssembly.CommandExtensionMethods.DeriveParameters);
+            code.Emit(OpCodes.Stloc, parametersLocal);
+            return parametersLocal;
+        }
+
         private void EmitGetValue(ILGenerator code, FieldMapDefinition field)
         {
             var ordinalField = this.fieldOrdinals[field.SourceColumn];
@@ -269,16 +336,57 @@ namespace Mata.Emit
             code.EmitCall(OpCodes.Callvirt, field.DestinationProperty.GetSetMethod(), null);
         }
 
+        private void EmitSetParameter(ILGenerator code, FieldMapDefinition field, LocalBuilder parametersLocal, string sourceColumn)
+        {
+            var destinationProperty = field.DestinationProperty;
+            var propertyType = destinationProperty.PropertyType;
+            var commandMethods = MapEmitAssembly.CommandExtensionMethods;
+            var setParameterMethod = field.AllowNulls ? commandMethods.SetParameterOrDbNull : commandMethods.SetParameter;
+
+            this.mapEmitDebugInfo?.AddDebugSetParameter(code, field, setParameterMethod, sourceColumn);
+            code.Emit(OpCodes.Ldarg_1);
+            code.Emit(OpCodes.Ldloc, parametersLocal);
+            code.Emit(OpCodes.Ldstr, sourceColumn);
+            code.Emit(OpCodes.Ldarg_2);
+            code.Emit(OpCodes.Callvirt, destinationProperty.GetMethod);
+
+            if (propertyType.IsValueType)
+            {
+                code.Emit(OpCodes.Box, propertyType);
+            }
+
+            code.Emit(OpCodes.Call, setParameterMethod);
+        }
+
+        private void EmitAddParameter(ILGenerator code, FieldMapDefinition field, string sourceColumn)
+        {
+            var destinationProperty = field.DestinationProperty;
+            var propertyType = destinationProperty.PropertyType;
+            var commandMethods = MapEmitAssembly.CommandExtensionMethods;
+            var addParameterMethod = field.AllowNulls ? commandMethods.AddParameterOrDbNull : commandMethods.AddParameter;
+
+            this.mapEmitDebugInfo?.AddDebugAddParameter(code, field, addParameterMethod, sourceColumn);
+            code.Emit(OpCodes.Ldarg_1);
+            code.Emit(OpCodes.Ldstr, sourceColumn);
+            code.Emit(OpCodes.Ldarg_2);
+            code.Emit(OpCodes.Callvirt, destinationProperty.GetMethod);
+
+            if (propertyType.IsValueType)
+            {
+                code.Emit(OpCodes.Box, propertyType);
+            }
+
+            code.Emit(OpCodes.Call, addParameterMethod);
+        }
+
         private void EmitLoadOrdinals()
         {
             this.mapEmitDebugInfo?.AddDebugLoadOrdinalsDeclaration();
             var code = this.loadOrdinalsMethod.GetILGenerator();
 
-            var getOrdinalMethod = typeof(IDataRecord).GetMethod("GetOrdinal");
-
             foreach (var fieldOrdinal in this.fieldOrdinals)
             {
-                this.EmitGetOrdinal(code, fieldOrdinal.Key, getOrdinalMethod, fieldOrdinal.Value);
+                this.EmitGetOrdinal(code, fieldOrdinal.Key, fieldOrdinal.Value);
             }
 
             this.mapEmitDebugInfo?.AddDebugEndMethod(code);
@@ -288,14 +396,13 @@ namespace Mata.Emit
         private void EmitGetOrdinal(
             ILGenerator code,
             string sourceColumn,
-            MethodInfo getOrdinalMethod,
             FieldInfo ordinalProperty)
         {
             this.mapEmitDebugInfo?.AddDebugGetOrdinal(code, ordinalProperty, sourceColumn);
             code.Emit(OpCodes.Ldarg_0);
             code.Emit(OpCodes.Ldarg_1);
             code.Emit(OpCodes.Ldstr, sourceColumn);
-            code.EmitCall(OpCodes.Callvirt, getOrdinalMethod, null);
+            code.EmitCall(OpCodes.Callvirt, MapEmitAssembly.GetOrdinalsMethod, null);
             code.Emit(OpCodes.Stfld, ordinalProperty);
         }
     }

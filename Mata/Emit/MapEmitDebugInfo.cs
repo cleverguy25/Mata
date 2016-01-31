@@ -71,6 +71,13 @@ namespace Mata.Emit
             this.AddDebugLine("        {");
         }
 
+        public void AddDebugLoadParametersDeclaration()
+        {
+            this.AddDebugLine(string.Empty);
+            this.AddDebugLine($"        public void LoadParameters(IDbCommand command, {typeof(T).Name} model)");
+            this.AddDebugLine("        {");
+        }
+
         public void AddDebugLoadOrdinalsDeclaration()
         {
             this.AddDebugLine(string.Empty);
@@ -96,6 +103,32 @@ namespace Mata.Emit
             this.AddDebugSymbolLine(
                 code,
                 $"            model.{field.DestinationProperty.Name} = reader.{getMethod.Name}({ordinalField.Name}{defaultValue});");
+        }
+
+        public void AddDebugDeriveParameters(ILGenerator code)
+        {
+            this.AddDebugSymbolLine(
+                code,
+                "            var parameters = command.DeriveParameters();");
+        }
+
+        public void AddDebugSetParameter(ILGenerator code, FieldMapDefinition field, MethodInfo setParameterMethod, string sourceColumn)
+        {
+            this.AddDebugSymbolLine(
+                code,
+                $"            command.{setParameterMethod.Name}(parameters, \"{sourceColumn}\", model.{field.DestinationProperty.Name});");
+        }
+
+        public void AddDebugAddParameter(ILGenerator code, FieldMapDefinition field, MethodInfo addParameterMethod, string sourceColumn)
+        {
+            this.AddDebugSymbolLine(
+                code,
+                $"            command.{addParameterMethod.Name}(\"{sourceColumn}\", model.{field.DestinationProperty.Name});");
+        }
+
+        public void SetLocalVariableName(LocalBuilder parametersLocal)
+        {
+            parametersLocal.SetLocalSymInfo("parameters");
         }
 
         private static string GetDefaultValue(FieldMapDefinition field)

@@ -15,10 +15,13 @@ namespace Mata
     {
         private readonly Lazy<Func<IMap<T>>> create;
 
-        public MapDefinition()
+        public MapDefinition(bool deriveParameters = true)
         {
+            this.DeriveParameters = deriveParameters;
             this.create = new Lazy<Func<IMap<T>>>(this.GenerateMapCreationFunction);
         }
+
+        public bool DeriveParameters { get; private set; }
 
         public string UniqueId { get; } = Guid.NewGuid().ToString();
 

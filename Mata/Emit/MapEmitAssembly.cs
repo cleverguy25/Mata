@@ -5,11 +5,8 @@
 namespace Mata.Emit
 {
     using System;
-    using System.CodeDom;
     using System.Collections.Generic;
     using System.Data;
-    using System.Data.Common;
-    using System.Data.SqlTypes;
     using System.Diagnostics;
     using System.Diagnostics.SymbolStore;
     using System.Reflection;
@@ -20,6 +17,8 @@ namespace Mata.Emit
         private static readonly AssemblyName AssemblyName = new AssemblyName("SqlDataReaderMap");
 
         private static readonly Lazy<ModuleBuilder> ModuleBuilderInstance = new Lazy<ModuleBuilder>(LoadModuleBuilder);
+
+        private static readonly Lazy<MethodInfo> GetOrdinalsMethodInstance = new Lazy<MethodInfo>(() => typeof(IDataRecord).GetMethod("GetOrdinal"));
 
         private static readonly Lazy<Dictionary<Type, MethodInfo>> DataRecordGetMethodsData =
             new Lazy<Dictionary<Type, MethodInfo>>(LoadDataRecordGetMethods);
@@ -33,9 +32,12 @@ namespace Mata.Emit
         private static readonly Lazy<Dictionary<Type, ConstructorInfo>> SupportedConstantTypeData =
             new Lazy<Dictionary<Type, ConstructorInfo>>(LoadSupportedConstantType);
 
+        private static readonly Lazy<CommandExtensionMethods> CommandExtensionMethodsInstance =
+            new Lazy<CommandExtensionMethods>(() => new CommandExtensionMethods());
+
         private static AssemblyBuilder assemblyBuilder;
 
-        public static bool EmitDebugSymbols { get; set; } = false;
+        public static bool EmitDebugSymbols { get; set; }
 
         public static ModuleBuilder ModuleBuilder => ModuleBuilderInstance.Value;
 
@@ -46,6 +48,10 @@ namespace Mata.Emit
         public static Dictionary<Type, MethodInfo> NullableGetWithDefaultMethods => NullableGetMethodsWithDefaultData.Value;
 
         public static Dictionary<Type, ConstructorInfo> SupportedConstantType => SupportedConstantTypeData.Value;
+
+        public static CommandExtensionMethods CommandExtensionMethods => CommandExtensionMethodsInstance.Value;
+
+        public static MethodInfo GetOrdinalsMethod => GetOrdinalsMethodInstance.Value;
 
         public static ISymbolDocumentWriter CreateDocumentWriter(string name)
             => ModuleBuilder.DefineDocument(name, Guid.Empty, Guid.Empty, Guid.Empty);
@@ -76,42 +82,18 @@ namespace Mata.Emit
             var type = typeof(IDataRecord);
             var methods = new Dictionary<Type, MethodInfo>
                               {
-                                  {
-                                      typeof(bool), type.GetMethod("GetBoolean")
-                                  },
-                                  {
-                                      typeof(byte), type.GetMethod("GetByte")
-                                  },
-                                  {
-                                      typeof(short), type.GetMethod("GetInt16")
-                                  },
-                                  {
-                                      typeof(int), type.GetMethod("GetInt32")
-                                  },
-                                  {
-                                      typeof(long), type.GetMethod("GetInt64")
-                                  },
-                                  {
-                                      typeof(char), type.GetMethod("GetChar")
-                                  },
-                                  {
-                                      typeof(string), type.GetMethod("GetString")
-                                  },
-                                  {
-                                      typeof(DateTime), type.GetMethod("GetDateTime")
-                                  },
-                                  {
-                                      typeof(decimal), type.GetMethod("GetDecimal")
-                                  },
-                                  {
-                                      typeof(float), type.GetMethod("GetFloat")
-                                  },
-                                  {
-                                      typeof(double), type.GetMethod("GetDouble")
-                                  },
-                                  {
-                                      typeof(Guid), type.GetMethod("GetGuid")
-                                  }
+                                  { typeof(bool), type.GetMethod("GetBoolean") },
+                                  { typeof(byte), type.GetMethod("GetByte") },
+                                  { typeof(short), type.GetMethod("GetInt16") },
+                                  { typeof(int), type.GetMethod("GetInt32") },
+                                  { typeof(long), type.GetMethod("GetInt64") },
+                                  { typeof(char), type.GetMethod("GetChar") },
+                                  { typeof(string), type.GetMethod("GetString") },
+                                  { typeof(DateTime), type.GetMethod("GetDateTime") },
+                                  { typeof(decimal), type.GetMethod("GetDecimal") },
+                                  { typeof(float), type.GetMethod("GetFloat") },
+                                  { typeof(double), type.GetMethod("GetDouble") },
+                                  { typeof(Guid), type.GetMethod("GetGuid") }
                               };
             return methods;
         }
@@ -121,42 +103,18 @@ namespace Mata.Emit
             var type = typeof(DataRecordExtensions);
             var methods = new Dictionary<Type, MethodInfo>
                               {
-                                  {
-                                      typeof(bool?), type.GetMethod("GetNullableBoolean")
-                                  },
-                                  {
-                                      typeof(byte?), type.GetMethod("GetNullableByte")
-                                  },
-                                  {
-                                      typeof(short?), type.GetMethod("GetNullableInt16")
-                                  },
-                                  {
-                                      typeof(int?), type.GetMethod("GetNullableInt32")
-                                  },
-                                  {
-                                      typeof(long?), type.GetMethod("GetNullableInt64")
-                                  },
-                                  {
-                                      typeof(char?), type.GetMethod("GetNullableChar")
-                                  },
-                                  {
-                                      typeof(string), type.GetMethod("GetNullableString")
-                                  },
-                                  {
-                                      typeof(DateTime?), type.GetMethod("GetNullableDateTime")
-                                  },
-                                  {
-                                      typeof(decimal?), type.GetMethod("GetNullableDecimal")
-                                  },
-                                  {
-                                      typeof(float?), type.GetMethod("GetNullableFloat")
-                                  },
-                                  {
-                                      typeof(double?), type.GetMethod("GetNullableDouble")
-                                  },
-                                  {
-                                      typeof(Guid?), type.GetMethod("GetNullableGuid")
-                                  }
+                                  { typeof(bool?), type.GetMethod("GetNullableBoolean") },
+                                  { typeof(byte?), type.GetMethod("GetNullableByte") },
+                                  { typeof(short?), type.GetMethod("GetNullableInt16") },
+                                  { typeof(int?), type.GetMethod("GetNullableInt32") },
+                                  { typeof(long?), type.GetMethod("GetNullableInt64") },
+                                  { typeof(char?), type.GetMethod("GetNullableChar") },
+                                  { typeof(string), type.GetMethod("GetNullableString") },
+                                  { typeof(DateTime?), type.GetMethod("GetNullableDateTime") },
+                                  { typeof(decimal?), type.GetMethod("GetNullableDecimal") },
+                                  { typeof(float?), type.GetMethod("GetNullableFloat") },
+                                  { typeof(double?), type.GetMethod("GetNullableDouble") },
+                                  { typeof(Guid?), type.GetMethod("GetNullableGuid") }
                               };
             return methods;
         }
@@ -166,57 +124,23 @@ namespace Mata.Emit
             var type = typeof(DataRecordExtensions);
             var methods = new Dictionary<Type, MethodInfo>
                               {
-                                  {
-                                      typeof(bool?), type.GetMethod("GetBoolean")
-                                  },
-                                  {
-                                      typeof(bool), type.GetMethod("GetBoolean")
-                                  },
-                                  {
-                                      typeof(byte?), type.GetMethod("GetByte")
-                                  },
-                                  {
-                                      typeof(byte), type.GetMethod("GetByte")
-                                  },
-                                  {
-                                      typeof(short?), type.GetMethod("GetInt16")
-                                  },
-                                  {
-                                      typeof(short), type.GetMethod("GetInt16")
-                                  },
-                                  {
-                                      typeof(int?), type.GetMethod("GetInt32")
-                                  },
-                                  {
-                                      typeof(int), type.GetMethod("GetInt32")
-                                  },
-                                  {
-                                      typeof(long?), type.GetMethod("GetInt64")
-                                  },
-                                  {
-                                      typeof(long), type.GetMethod("GetInt64")
-                                  },
-                                  {
-                                      typeof(char?), type.GetMethod("GetChar")
-                                  },
-                                  {
-                                      typeof(char), type.GetMethod("GetChar")
-                                  },
-                                  {
-                                      typeof(string), type.GetMethod("GetString")
-                                  },
-                                  {
-                                      typeof(float?), type.GetMethod("GetFloat")
-                                  },
-                                  {
-                                      typeof(float), type.GetMethod("GetFloat")
-                                  },
-                                  {
-                                      typeof(double?), type.GetMethod("GetDouble")
-                                  },
-                                  {
-                                      typeof(double), type.GetMethod("GetDouble")
-                                  }
+                                  { typeof(bool?), type.GetMethod("GetBoolean") },
+                                  { typeof(bool), type.GetMethod("GetBoolean") },
+                                  { typeof(byte?), type.GetMethod("GetByte") },
+                                  { typeof(byte), type.GetMethod("GetByte") },
+                                  { typeof(short?), type.GetMethod("GetInt16") },
+                                  { typeof(short), type.GetMethod("GetInt16") },
+                                  { typeof(int?), type.GetMethod("GetInt32") },
+                                  { typeof(int), type.GetMethod("GetInt32") },
+                                  { typeof(long?), type.GetMethod("GetInt64") },
+                                  { typeof(long), type.GetMethod("GetInt64") },
+                                  { typeof(char?), type.GetMethod("GetChar") },
+                                  { typeof(char), type.GetMethod("GetChar") },
+                                  { typeof(string), type.GetMethod("GetString") },
+                                  { typeof(float?), type.GetMethod("GetFloat") },
+                                  { typeof(float), type.GetMethod("GetFloat") },
+                                  { typeof(double?), type.GetMethod("GetDouble") },
+                                  { typeof(double), type.GetMethod("GetDouble") }
                               };
             return methods;
         }
@@ -236,11 +160,6 @@ namespace Mata.Emit
                                         { typeof(double), typeof(double?).GetConstructor(new[] { typeof(double) }) }
                                     };
             return constantTypes;
-        }
-
-        private static MethodInfo FindDefaultGetMethod(Type extensionType, string methodName, Type type)
-        {
-            return extensionType.GetMethod(methodName, new[] { typeof(IDataRecord), typeof(int), type });
         }
 
         private static ModuleBuilder LoadModuleBuilder()
