@@ -7,7 +7,6 @@ namespace Mata
     using System.Collections.Generic;
     using System.Data;
     using System.Data.Common;
-    using System.Data.SqlClient;
     using System.Threading.Tasks;
 
     public static class DataReaderExtensions
@@ -31,6 +30,37 @@ namespace Mata
             }
 
             return list;
+        }
+
+        public static async Task<Dictionary<TKey, List<T>>> LoadDictionaryAsync<T, TKey>(
+            this DbDataReader reader,
+            MapDefinition<T> mapDefinition,
+            string keyColumn)
+            where T : new()
+        {
+            var result = new Dictionary<TKey, List<T>>();
+            if (reader.HasRows == false)
+            {
+                return result;
+            }
+
+            var keyOrdinal = reader.GetOrdinal(keyColumn);
+            var map = CreateMap(reader, mapDefinition);
+            while (await reader.ReadAsync())
+            {
+                var key = (TKey)reader.GetValue(keyOrdinal);
+                List<T> list;
+                if (result.TryGetValue(key, out list) == false)
+                {
+                    list = new List<T>();
+                    result[key] = list;
+                }
+
+                var item = LoadItem(reader, map);
+                list.Add(item);
+            }
+
+            return result;
         }
 
         public static async Task<T> LoadSingleAsync<T>(
