@@ -17,7 +17,7 @@ If there is something you need to do that is not supported by Mata, you can stil
 
 Mata is on nuget:
 
-[https://github.com/cleverguy25/Mata](https://github.com/cleverguy25/Mata)
+[https://www.nuget.org/packages/Mata](https://www.nuget.org/packages/Mata)
 
     Install-Package Mata -Pre 
 
