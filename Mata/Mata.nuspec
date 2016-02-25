@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>Mata</id>
-    <version>0.8.2-alpha</version>
+    <version>0.8.3-alpha</version>
     <title>Mata Data to POCO Mapping</title>
     <authors>cleve.littlefield</authors>
     <owners>cleve.littlefield</owners>
@@ -15,7 +15,9 @@
     <tags>Mata SqlDataReader POCO Micro ORM</tags>
   </metadata>
   <files>
-    <file src="C:\Palador\OpenSource\Mata\Mata\bin\Debug\Mata.dll" target="lib\net461\Mata.dll" exclude="" />
-    <file src="C:\Palador\OpenSource\Mata\Mata\bin\Debug\Mata.pdb" target="lib\net461\Mata.pdb" exclude="" />
+    <file src="bin\Release\net461\Mata.dll" target="lib\net461\Mata.dll" exclude="" />
+    <file src="bin\Release\net461\Mata.pdb" target="lib\net461\Mata.pdb" exclude="" />
+    <file src="bin\Release\net452\Mata.dll" target="lib\net452\Mata.dll" exclude="" />
+    <file src="bin\Release\net452\Mata.pdb" target="lib\net452\Mata.pdb" exclude="" />
   </files>
 </package>
