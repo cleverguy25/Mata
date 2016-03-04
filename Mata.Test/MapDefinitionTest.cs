@@ -269,6 +269,8 @@ namespace Mata.Test
 
             public int? Test3 { get; set; }
 
+            public List<string> MyStrings { get; set; }
+
             private long Test4 { get; set; }
 
             public object TestMethod(string value)

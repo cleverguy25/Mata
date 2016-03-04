@@ -59,17 +59,27 @@ namespace Mata.Emit
         public static void CheckValidType(PropertyInfo destinationProperty)
         {
             var type = destinationProperty.PropertyType;
-            if (DataRecordGetMethods.ContainsKey(type))
-            {
-                return;
-            }
-
-            if (NullableGetMethods.ContainsKey(type))
+            if (IsValidType(type))
             {
                 return;
             }
 
             throw new ArgumentOutOfRangeException(nameof(destinationProperty), $"Type {type.Name} for property {destinationProperty.Name} is not supported by IDataRecord.");
+        }
+
+        public static bool IsValidType(Type type)
+        {
+            if (DataRecordGetMethods.ContainsKey(type))
+            {
+                return true;
+            }
+
+            if (NullableGetMethods.ContainsKey(type))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static void SaveAssembly()

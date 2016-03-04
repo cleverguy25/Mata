@@ -7,6 +7,7 @@ namespace Mata
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
     using Emit;
@@ -30,7 +31,10 @@ namespace Mata
 
         public void MapType()
         {
-            foreach (var propertyInfo in typeof(T).GetProperties())
+            var properties = typeof(T).GetProperties()
+                                      .Where(property => MapEmitAssembly.IsValidType(property.PropertyType));
+
+            foreach (var propertyInfo in properties)
             {
                 var allowNulls = propertyInfo.PropertyType.DoesPropertySupportNull();
 
