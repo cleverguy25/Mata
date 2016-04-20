@@ -5,7 +5,6 @@
 namespace Mata
 {
     using System.Data;
-    using System.Data.Common;
 
     public interface IMap<in T>
     {

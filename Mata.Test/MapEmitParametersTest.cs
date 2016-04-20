@@ -17,7 +17,7 @@ namespace Mata.Test
             MapEmitAssembly.EmitDebugSymbols = true;
         }
 
-        //// bool, byte, short, int, long, char, string, datetime, decimal, float, double, guid
+        //// bool, byte, short, int, long, char, string, datetime, decimal, float, double, guid, datetimeoffset
 
         [Fact]
         public void SetBoolParameter()
@@ -165,6 +165,68 @@ namespace Mata.Test
             // Act
             var item = new TestModel();
             item.StringProperty = null;
+            map.LoadParameters(command, item);
+
+            // Assert
+            Assert.Equal(DBNull.Value, command.Parameters[parameterName].Value);
+        }
+
+        [Fact]
+        public void AddDateTimeOffsetParameter()
+        {
+            // Arrange
+            var mapDefinition = new MapDefinition<TestModel>(false);
+            mapDefinition.Map(model => model.DateTimeOffsetProperty);
+            var parameterName = "@DateTimeOffsetProperty";
+            var command = new SqlCommand();
+            var map = mapDefinition.CreateMap();
+            var now = DateTime.Today;
+
+            // Act
+            var item = new TestModel();
+            item.DateTimeOffsetProperty = now;
+            map.LoadParameters(command, item);
+
+            // Assert
+            var parameter = (DateTimeOffset)command.Parameters[parameterName].Value;
+            Assert.Equal(now.Month, parameter.Month);
+            Assert.Equal(now.Day, parameter.Day);
+            Assert.Equal(now.Year, parameter.Year);
+        }
+
+        [Fact]
+        public void SetNullableDateTimeOffsetParameter()
+        {
+            // Arrange
+            var mapDefinition = new MapDefinition<TestModel>();
+            mapDefinition.Map(model => model.NullableDateTimeOffsetProperty);
+            var parameterName = "@NullableDateTimeOffsetProperty";
+            var command = CreateCommandWithParameter("MySproc", CommandType.StoredProcedure, parameterName);
+            var map = mapDefinition.CreateMap();
+
+            // Act
+            var now = DateTimeOffset.Now;
+            var item = new TestModel();
+            item.NullableDateTimeOffsetProperty = now;
+            map.LoadParameters(command, item);
+
+            // Assert
+            Assert.Equal(now, command.Parameters[parameterName].Value);
+        }
+
+        [Fact]
+        public void SetNullableDateTimeOffsetParameterWithNull()
+        {
+            // Arrange
+            var mapDefinition = new MapDefinition<TestModel>();
+            mapDefinition.Map(model => model.NullableDateTimeOffsetProperty);
+            var parameterName = "@NullableDateTimeOffsetProperty";
+            var command = CreateCommandWithParameter("MySproc", CommandType.StoredProcedure, parameterName);
+            var map = mapDefinition.CreateMap();
+
+            // Act
+            var item = new TestModel();
+            item.NullableDateTimeOffsetProperty = null;
             map.LoadParameters(command, item);
 
             // Assert

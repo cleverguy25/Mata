@@ -18,10 +18,14 @@ namespace Mata.Emit
 
         private static readonly Lazy<ModuleBuilder> ModuleBuilderInstance = new Lazy<ModuleBuilder>(LoadModuleBuilder);
 
-        private static readonly Lazy<MethodInfo> GetOrdinalsMethodInstance = new Lazy<MethodInfo>(() => typeof(IDataRecord).GetMethod("GetOrdinal"));
+        private static readonly Lazy<MethodInfo> GetOrdinalsMethodInstance = new Lazy<MethodInfo>(() =>
+            typeof(IDataRecord).GetMethod("GetOrdinal"));
 
         private static readonly Lazy<Dictionary<Type, MethodInfo>> DataRecordGetMethodsData =
             new Lazy<Dictionary<Type, MethodInfo>>(LoadDataRecordGetMethods);
+
+        private static readonly Lazy<Dictionary<Type, MethodInfo>> SqlSpecificGetMethodsData =
+            new Lazy<Dictionary<Type, MethodInfo>>(LoadSqlSpecificGetMethods);
 
         private static readonly Lazy<Dictionary<Type, MethodInfo>> NullableGetMethodsData =
             new Lazy<Dictionary<Type, MethodInfo>>(LoadNullableGetMethods);
@@ -42,6 +46,8 @@ namespace Mata.Emit
         public static ModuleBuilder ModuleBuilder => ModuleBuilderInstance.Value;
 
         public static Dictionary<Type, MethodInfo> DataRecordGetMethods => DataRecordGetMethodsData.Value;
+
+        public static Dictionary<Type, MethodInfo> SqlSpecificGetMethods => SqlSpecificGetMethodsData.Value;
 
         public static Dictionary<Type, MethodInfo> NullableGetMethods => NullableGetMethodsData.Value;
 
@@ -64,7 +70,9 @@ namespace Mata.Emit
                 return;
             }
 
-            throw new ArgumentOutOfRangeException(nameof(destinationProperty), $"Type {type.Name} for property {destinationProperty.Name} is not supported by IDataRecord.");
+            throw new ArgumentOutOfRangeException(
+                nameof(destinationProperty),
+                $"Type {type.Name} for property {destinationProperty.Name} is not supported by IDataRecord.");
         }
 
         public static bool IsValidType(Type type)
@@ -79,7 +87,17 @@ namespace Mata.Emit
                 return true;
             }
 
+            if (SqlSpecificGetMethods.ContainsKey(type))
+            {
+                return true;
+            }
+
             return false;
+        }
+
+        public static bool IsSqlServerSpecificType(Type type)
+        {
+            return SqlSpecificGetMethods.ContainsKey(type);
         }
 
         public static void SaveAssembly()
@@ -151,6 +169,17 @@ namespace Mata.Emit
                                   { typeof(float), type.GetMethod("GetFloat") },
                                   { typeof(double?), type.GetMethod("GetDouble") },
                                   { typeof(double), type.GetMethod("GetDouble") }
+                              };
+            return methods;
+        }
+
+        private static Dictionary<Type, MethodInfo> LoadSqlSpecificGetMethods()
+        {
+            var type = typeof(DataRecordExtensions);
+            var methods = new Dictionary<Type, MethodInfo>
+                              {
+                                  { typeof(DateTimeOffset), type.GetMethod("GetDateTimeOffset") },
+                                  { typeof(DateTimeOffset?), type.GetMethod("GetNullableDateTimeOffset") }
                               };
             return methods;
         }

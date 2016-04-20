@@ -128,5 +128,15 @@ namespace Mata
         {
             return reader.IsDBNull(ordinal) ? defaultValue : reader.GetGuid(ordinal);
         }
+
+        public static DateTimeOffset? GetNullableDateTimeOffset(this ISqlDataRecord reader, int ordinal)
+        {
+            return reader.IsDBNull(ordinal) ? null : (DateTimeOffset?)reader.GetDateTimeOffset(ordinal);
+        }
+
+        public static DateTimeOffset GetDateTimeOffset(ISqlDataRecord reader, int ordinal)
+        {
+            return reader.GetDateTimeOffset(ordinal);
+        }
     }
 }

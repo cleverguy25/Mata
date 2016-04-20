@@ -53,5 +53,9 @@ namespace Mata.Test
         public double? NullableDoubleProperty { get; set; }
 
         public Guid? NullableGuidProperty { get; set; }
+
+        public DateTimeOffset DateTimeOffsetProperty { get; set; }
+
+        public DateTimeOffset? NullableDateTimeOffsetProperty { get; set; }
     }
 }

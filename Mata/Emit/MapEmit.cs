@@ -7,7 +7,7 @@ namespace Mata.Emit
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Data.Common;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -26,6 +26,8 @@ namespace Mata.Emit
         private Dictionary<string, FieldInfo> fieldOrdinals;
 
         private MethodBuilder loadMethod;
+
+        private MethodBuilder loadSqlDataReaderMethod;
 
         private MethodBuilder loadOrdinalsMethod;
 
@@ -52,6 +54,13 @@ namespace Mata.Emit
             this.CreateLoadMethod();
             this.CreateLoadParametersMethod();
             this.ImplementInterface();
+
+            if (this.mapDefinition.HasSqlServerSpecificFields)
+            {
+                this.CreateLoadSqlDataReaderMethod();
+                this.ImplementSqlDataReaderInterface();
+            }
+
             var type = this.typeBuilder.CreateType();
             this.mapEmitDebugInfo?.AddDebugEndFile();
             return GenerateFactoryMethod(type);
@@ -66,18 +75,24 @@ namespace Mata.Emit
 
         private static MethodInfo GetReaderGetDataMethodForField(FieldMapDefinition field)
         {
-            Dictionary<Type, MethodInfo> dictionary;
+            Dictionary<Type, MethodInfo> methodDictionary;
+
+            if (field.IsSqlServerSpecific)
+            {
+                methodDictionary = MapEmitAssembly.SqlSpecificGetMethods;
+                return methodDictionary[field.DestinationProperty.PropertyType];
+            }
+
             if (field.AllowNulls)
             {
-                dictionary = field.DefaultValue == null ? MapEmitAssembly.NullableGetMethods : MapEmitAssembly.NullableGetWithDefaultMethods;
+                methodDictionary = field.DefaultValue == null ? MapEmitAssembly.NullableGetMethods : MapEmitAssembly.NullableGetWithDefaultMethods;
             }
             else
             {
-                dictionary = MapEmitAssembly.DataRecordGetMethods;
+                methodDictionary = MapEmitAssembly.DataRecordGetMethods;
             }
 
-            var getMethod = dictionary[field.DestinationProperty.PropertyType];
-            return getMethod;
+            return methodDictionary[field.DestinationProperty.PropertyType];
         }
 
         private static void EmitDefaultValueConstant(ILGenerator code, FieldMapDefinition field)
@@ -152,9 +167,16 @@ namespace Mata.Emit
                 typeName,
                 TypeAttributes.Public);
 
-            this.typeBuilder.AddInterfaceImplementation(typeof(IMap<T>));
-
-            this.mapEmitDebugInfo?.AddDebugTypeDeclaration();
+            if (this.mapDefinition.HasSqlServerSpecificFields)
+            {
+                this.typeBuilder.AddInterfaceImplementation(typeof(ISqlMap<T>));
+                this.mapEmitDebugInfo?.AddDebugTypeForISqlMapDeclaration();
+            }
+            else
+            {
+                this.typeBuilder.AddInterfaceImplementation(typeof(IMap<T>));
+                this.mapEmitDebugInfo?.AddDebugTypeDeclaration();
+            }
         }
 
         private string GetTypeName()
@@ -213,6 +235,12 @@ namespace Mata.Emit
             this.typeBuilder.DefineMethodOverride(this.loadParametersMethod, loadParametersInterface);
         }
 
+        private void ImplementSqlDataReaderInterface()
+        {
+            var loadSqlReaderInterface = typeof(ISqlMap<T>).GetMethod("LoadSqlDataReader");
+            this.typeBuilder.DefineMethodOverride(this.loadSqlDataReaderMethod, loadSqlReaderInterface);
+        }
+
         private void CreateLoadOrdinalsMethod()
         {
             var parameterTypes = new[] { typeof(IDataRecord) };
@@ -238,10 +266,21 @@ namespace Mata.Emit
             var parameterTypes = new[] { typeof(IDbCommand), typeof(T) };
             this.loadParametersMethod = this.DefineVoidMethod("LoadParameters", parameterTypes);
 
-            this.loadMethod.DefineParameter(1, ParameterAttributes.None, "command");
-            this.loadMethod.DefineParameter(2, ParameterAttributes.None, "model");
+            this.loadParametersMethod.DefineParameter(1, ParameterAttributes.None, "command");
+            this.loadParametersMethod.DefineParameter(2, ParameterAttributes.None, "model");
 
             this.EmitLoadParametersMethod();
+        }
+
+        private void CreateLoadSqlDataReaderMethod()
+        {
+            var parameterTypes = new[] { typeof(T), typeof(ISqlDataRecord) };
+            this.loadSqlDataReaderMethod = this.DefineVoidMethod("LoadSqlDataReader", parameterTypes);
+
+            this.loadSqlDataReaderMethod.DefineParameter(1, ParameterAttributes.None, "model");
+            this.loadSqlDataReaderMethod.DefineParameter(2, ParameterAttributes.None, "reader");
+
+            this.EmitLoadSqlDataReaderMethod();
         }
 
         private MethodBuilder DefineVoidMethod(string methodName, Type[] parameterTypes)
@@ -257,7 +296,24 @@ namespace Mata.Emit
         {
             this.mapEmitDebugInfo?.AddDebugLoadDeclaration();
             var code = this.loadMethod.GetILGenerator();
-            foreach (var field in this.mapDefinition.FieldMapDefinitions)
+
+            foreach (var field in this.mapDefinition.FieldMapDefinitions.Where(fieldDefinition =>
+                fieldDefinition.Value.IsSqlServerSpecific == false))
+            {
+                this.EmitGetValue(code, field.Value);
+            }
+
+            this.mapEmitDebugInfo?.AddDebugEndMethod(code);
+            code.Emit(OpCodes.Ret);
+        }
+
+        private void EmitLoadSqlDataReaderMethod()
+        {
+            this.mapEmitDebugInfo?.AddDebugLoadForSqlDataReaderDeclaration();
+            var code = this.loadSqlDataReaderMethod.GetILGenerator();
+
+            foreach (var field in this.mapDefinition.FieldMapDefinitions.Where(fieldDefinition =>
+                fieldDefinition.Value.IsSqlServerSpecific == true))
             {
                 this.EmitGetValue(code, field.Value);
             }
@@ -329,7 +385,8 @@ namespace Mata.Emit
 
             EmitDefaultValueConstant(code, field);
 
-            code.EmitCall(field.AllowNulls ? OpCodes.Call : OpCodes.Callvirt, getMethod, null);
+            ////code.EmitCall(field.AllowNulls || field.IsSqlServerSpecific ? OpCodes.Call : OpCodes.Callvirt, getMethod, null);
+            code.EmitCall(getMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, getMethod, null);
 
             WrapWithNullableIfNeeded(code, field);
 
