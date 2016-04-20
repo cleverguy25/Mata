@@ -162,6 +162,25 @@ namespace Mata.Test
         }
 
         [Fact]
+        public void MapGetDateTimeOffset()
+        {
+            // Arrange
+            var mapDefinition = new MapDefinition<TestModel>();
+            mapDefinition.Map(model => model.DateTimeOffsetProperty);
+            var map = (ISqlMap<TestModel>)mapDefinition.CreateMap();
+            var reader = SetupGetDateTimeOffsetFromReader("DateTimeOffsetProperty", DateTime.Today);
+
+            // Act
+            var item = new TestModel();
+            map.LoadOrdinals(reader);
+            map.Load(item, reader);
+            map.LoadSqlDataReader(item, reader);
+
+            // Assert
+            Assert.Equal(DateTime.Today, item.DateTimeOffsetProperty);
+        }
+
+        [Fact]
         public void MapGetDecimal()
         {
             // Arrange
@@ -386,6 +405,26 @@ namespace Mata.Test
         }
 
         [Fact]
+        public void MapGetNullableDateTimeOffset()
+        {
+            // Arrange
+            var mapDefinition = new MapDefinition<TestModel>();
+            mapDefinition.Map(model => model.NullableDateTimeOffsetProperty);
+            var map = (ISqlMap<TestModel>)mapDefinition.CreateMap();
+            var reader = SetupGetDateTimeOffsetFromReader("NullableDateTimeOffsetProperty", DateTime.Today);
+
+            // Act
+            var item = new TestModel();
+            map.LoadOrdinals(reader);
+            map.Load(item, reader);
+            map.LoadSqlDataReader(item, reader);
+
+            // Assert
+            Assert.NotNull(item.NullableDateTimeOffsetProperty);
+            Assert.Equal(DateTime.Today, item.NullableDateTimeOffsetProperty.Value);
+        }
+
+        [Fact]
         public void MapGetNullableDecimal()
         {
             // Arrange
@@ -604,6 +643,25 @@ namespace Mata.Test
 
             // Assert
             Assert.Null(item.NullableDateTimeProperty);
+        }
+
+        [Fact]
+        public void MapGetNullableDateTimeOffsetWithNull()
+        {
+            // Arrange
+            var mapDefinition = new MapDefinition<TestModel>();
+            mapDefinition.Map(model => model.NullableDateTimeOffsetProperty);
+            var map = (ISqlMap<TestModel>)mapDefinition.CreateMap();
+            var reader = GetSqlDataRecordWithNullColumn("NullableDateTimeOffsetProperty");
+
+            // Act
+            var item = new TestModel();
+            map.LoadOrdinals(reader);
+            map.Load(item, reader);
+            map.LoadSqlDataReader(item, reader);
+
+            // Assert
+            Assert.Null(item.NullableDateTimeOffsetProperty);
         }
 
         [Fact]
@@ -1163,6 +1221,15 @@ namespace Mata.Test
             return reader;
         }
 
+        private static ISqlDataRecord GetSqlDataRecordWithNullColumn(string property)
+        {
+            var ordinal = new Random().Next();
+            var reader = Substitute.For<ISqlDataRecord>();
+            reader.GetOrdinal(property).Returns(ordinal);
+            reader.IsDBNull(ordinal).Returns(true);
+            return reader;
+        }
+
         private static IDataRecord SetupGetBoolFromReader(string propertyName, bool returnValue)
         {
             var ordinal = new Random().Next();
@@ -1232,6 +1299,15 @@ namespace Mata.Test
             var reader = Substitute.For<IDataRecord>();
             reader.GetOrdinal(propertyName).Returns(ordinal);
             reader.GetDateTime(ordinal).Returns(returnValue);
+            return reader;
+        }
+
+        private static ISqlDataRecord SetupGetDateTimeOffsetFromReader(string propertyName, DateTimeOffset returnValue)
+        {
+            var ordinal = new Random().Next();
+            var reader = Substitute.For<ISqlDataRecord>();
+            reader.GetOrdinal(propertyName).Returns(ordinal);
+            reader.GetDateTimeOffset(ordinal).Returns(returnValue);
             return reader;
         }
 

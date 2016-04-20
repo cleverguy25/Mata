@@ -6,7 +6,6 @@ namespace Mata
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
@@ -26,6 +25,8 @@ namespace Mata
 
         public string UniqueId { get; } = Guid.NewGuid().ToString();
 
+        public bool HasSqlServerSpecificFields { get; private set; }
+
         public Dictionary<MemberInfo, FieldMapDefinition> FieldMapDefinitions { get; } =
             new Dictionary<MemberInfo, FieldMapDefinition>();
 
@@ -37,7 +38,6 @@ namespace Mata
             foreach (var propertyInfo in properties)
             {
                 var allowNulls = propertyInfo.PropertyType.DoesPropertySupportNull();
-
                 this.Map(propertyInfo, propertyInfo.Name, allowNulls, null);
             }
         }
@@ -144,13 +144,15 @@ namespace Mata
         private void Map(PropertyInfo destinationProperty, string sourceColumn, bool allowNulls, object defaultValue)
         {
             CheckDefaultValuePreConditions(destinationProperty, allowNulls, defaultValue);
+            var isSqlServerSpecificType = this.IsSqlServerSpecificType(destinationProperty.PropertyType);
 
             MapEmitAssembly.CheckValidType(destinationProperty);
             var fieldMapDefinition = new FieldMapDefinition(
                                              destinationProperty,
                                              sourceColumn ?? destinationProperty.Name,
                                              allowNulls,
-                                             defaultValue);
+                                             defaultValue,
+                                             isSqlServerSpecificType);
 
             this.FieldMapDefinitions[destinationProperty] = fieldMapDefinition;
         }
@@ -159,6 +161,17 @@ namespace Mata
         {
             var generator = new MapEmit<T>(this);
             return generator.Generate();
+        }
+
+        private bool IsSqlServerSpecificType(Type type)
+        {
+            if (MapEmitAssembly.IsSqlServerSpecificType(type) == false)
+            {
+                return false;
+            }
+
+            this.HasSqlServerSpecificFields = true;
+            return true;
         }
     }
 }

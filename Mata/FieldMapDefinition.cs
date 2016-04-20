@@ -8,12 +8,18 @@ namespace Mata
 
     public class FieldMapDefinition
     {
-        public FieldMapDefinition(PropertyInfo destinationProperty, string sourceColumn, bool allowNulls, object defaultValue)
+        public FieldMapDefinition(
+            PropertyInfo destinationProperty,
+            string sourceColumn,
+            bool allowNulls,
+            object defaultValue,
+            bool isSqlServerSpecific)
         {
             this.DestinationProperty = destinationProperty;
             this.SourceColumn = sourceColumn;
             this.AllowNulls = allowNulls;
             this.DefaultValue = defaultValue;
+            this.IsSqlServerSpecific = isSqlServerSpecific;
         }
 
         public PropertyInfo DestinationProperty { get; }
@@ -23,5 +29,7 @@ namespace Mata
         public bool AllowNulls { get; }
 
         public object DefaultValue { get; }
+
+        public bool IsSqlServerSpecific { get; }
     }
 }

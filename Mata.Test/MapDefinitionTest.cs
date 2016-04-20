@@ -9,7 +9,6 @@ namespace Mata.Test
     using System.Data;
     using System.Linq;
     using System.Reflection;
-    using System.Security.Policy;
     using Emit;
     using NSubstitute;
     using Xunit;

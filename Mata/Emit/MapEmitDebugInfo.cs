@@ -64,10 +64,25 @@ namespace Mata.Emit
             this.AddDebugLine("    {");
         }
 
+        public void AddDebugTypeForISqlMapDeclaration()
+        {
+            this.AddDebugLine($"namespace {this.typeNamespace}");
+            this.AddDebugLine("{");
+            this.AddDebugLine($"    public class {this.className} : ISqlMap<{typeof(T).Name}>");
+            this.AddDebugLine("    {");
+        }
+
         public void AddDebugLoadDeclaration()
         {
             this.AddDebugLine(string.Empty);
             this.AddDebugLine($"        public void Load({typeof(T).Name} model, IDataRecord reader)");
+            this.AddDebugLine("        {");
+        }
+
+        public void AddDebugLoadForSqlDataReaderDeclaration()
+        {
+            this.AddDebugLine(string.Empty);
+            this.AddDebugLine($"        public void LoadSqlDataReader({typeof(T).Name} model, ISqlDataRecord reader)");
             this.AddDebugLine("        {");
         }
 
