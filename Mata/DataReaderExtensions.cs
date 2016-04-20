@@ -145,7 +145,7 @@ namespace Mata
         }
 
         private static async Task<Dictionary<TKey, List<T>>> ReadSqlServerSpecificDictionaryAsync<T, TKey>(
-            ISqlDataReader sqlReader,
+            SqlDataReaderShim sqlReader,
             int keyOrdinal,
             Dictionary<TKey, List<T>> result,
             ISqlMap<T> sqlMap)
@@ -161,7 +161,7 @@ namespace Mata
                     result[key] = list;
                 }
 
-                var item = LoadItem(sqlReader, sqlMap);
+                var item = LoadItemWithSqlServerSpecificField(sqlReader, sqlMap);
                 list.Add(item);
             }
 
