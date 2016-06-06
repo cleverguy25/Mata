@@ -115,9 +115,18 @@ namespace Mata.Emit
         {
             var defaultValue = GetDefaultValue(field);
 
-            this.AddDebugSymbolLine(
+            if (field.TypeConverter == null)
+            {
+                this.AddDebugSymbolLine(
+                    code,
+                    $"            model.{field.DestinationProperty.Name} = reader.{getMethod.Name}({ordinalField.Name}{defaultValue});");
+            }
+            else
+            {
+                this.AddDebugSymbolLine(
                 code,
-                $"            model.{field.DestinationProperty.Name} = reader.{getMethod.Name}({ordinalField.Name}{defaultValue});");
+                $"            model.{field.DestinationProperty.Name} = {field.TypeConverter.DeclaringType.Name}.{field.TypeConverter.Name}(reader.{getMethod.Name}({ordinalField.Name}{defaultValue}));");
+            }
         }
 
         public void AddDebugDeriveParameters(ILGenerator code)

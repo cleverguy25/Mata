@@ -57,5 +57,10 @@ namespace Mata.Test
         public DateTimeOffset DateTimeOffsetProperty { get; set; }
 
         public DateTimeOffset? NullableDateTimeOffsetProperty { get; set; }
+
+        // TypeConveters
+        public ShortGuid ShortGuidProperty { get; set; }
+
+        public ShortGuid? NullableShortGuidProperty { get; set; }
     }
 }

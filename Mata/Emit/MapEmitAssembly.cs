@@ -9,6 +9,7 @@ namespace Mata.Emit
     using System.Data;
     using System.Diagnostics;
     using System.Diagnostics.SymbolStore;
+    using System.Linq.Expressions;
     using System.Reflection;
     using System.Reflection.Emit;
 
@@ -43,6 +44,8 @@ namespace Mata.Emit
 
         public static bool EmitDebugSymbols { get; set; }
 
+        public static Dictionary<Type, MethodInfo> TypeConverters { get; set; } = new Dictionary<Type, MethodInfo>();
+
         public static ModuleBuilder ModuleBuilder => ModuleBuilderInstance.Value;
 
         public static Dictionary<Type, MethodInfo> DataRecordGetMethods => DataRecordGetMethodsData.Value;
@@ -61,6 +64,18 @@ namespace Mata.Emit
 
         public static ISymbolDocumentWriter CreateDocumentWriter(string name)
             => ModuleBuilder.DefineDocument(name, Guid.Empty, Guid.Empty, Guid.Empty);
+
+        public static void RegisterTypeConverter<TInput, TOutput>(Expression<Func<TInput, TOutput>> expression)
+        {
+            if (IsValidType(typeof(TInput)) == false)
+            {
+                throw new ArgumentOutOfRangeException($"{typeof(TInput).Name} is not a recognized DataReader type.");
+            }
+
+            var type = typeof(TOutput);
+            var typeConverter = GetMethod(expression);
+            TypeConverters[type] = typeConverter;
+        }
 
         public static void CheckValidType(PropertyInfo destinationProperty)
         {
@@ -92,7 +107,18 @@ namespace Mata.Emit
                 return true;
             }
 
+            if (TypeConverters.ContainsKey(type))
+            {
+                return true;
+            }
+
             return false;
+        }
+
+        public static MethodInfo GetTypeConverter(Type type)
+        {
+            MethodInfo converter;
+            return TypeConverters.TryGetValue(type, out converter) ? converter : null;
         }
 
         public static bool IsSqlServerSpecificType(Type type)
@@ -182,6 +208,28 @@ namespace Mata.Emit
                                   { typeof(DateTimeOffset?), type.GetMethod("GetNullableDateTimeOffset") }
                               };
             return methods;
+        }
+
+        private static MethodInfo GetMethod<TInput, TOutput>(Expression<Func<TInput, TOutput>> expression)
+        {
+            var lambda = expression as LambdaExpression;
+            var methodCall = lambda.Body as MethodCallExpression;
+            if (methodCall == null
+                || IsValidConvertMethod<TInput, TOutput>(methodCall.Method) == false)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return methodCall.Method;
+        }
+
+        private static bool IsValidConvertMethod<TInput, TOutput>(MethodInfo methodInfo)
+        {
+            var parameters = methodInfo.GetParameters();
+            return methodInfo.IsStatic
+                && methodInfo.ReturnType == typeof(TOutput)
+                && parameters.Length == 1
+                && parameters[0].ParameterType == typeof(TInput);
         }
 
         private static Dictionary<Type, ConstructorInfo> LoadSupportedConstantType()

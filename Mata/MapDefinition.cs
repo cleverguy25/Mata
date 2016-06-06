@@ -145,6 +145,7 @@ namespace Mata
         {
             CheckDefaultValuePreConditions(destinationProperty, allowNulls, defaultValue);
             var isSqlServerSpecificType = this.IsSqlServerSpecificType(destinationProperty.PropertyType);
+            var typeConverter = MapEmitAssembly.GetTypeConverter(destinationProperty.PropertyType);
 
             MapEmitAssembly.CheckValidType(destinationProperty);
             var fieldMapDefinition = new FieldMapDefinition(
@@ -152,7 +153,8 @@ namespace Mata
                                              sourceColumn ?? destinationProperty.Name,
                                              allowNulls,
                                              defaultValue,
-                                             isSqlServerSpecificType);
+                                             isSqlServerSpecificType,
+                                             typeConverter);
 
             this.FieldMapDefinitions[destinationProperty] = fieldMapDefinition;
         }

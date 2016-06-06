@@ -77,10 +77,11 @@ namespace Mata.Emit
         {
             Dictionary<Type, MethodInfo> methodDictionary;
 
+            var propertyType = field.DestinationProperty.PropertyType;
             if (field.IsSqlServerSpecific)
             {
                 methodDictionary = MapEmitAssembly.SqlSpecificGetMethods;
-                return methodDictionary[field.DestinationProperty.PropertyType];
+                return methodDictionary[propertyType];
             }
 
             if (field.AllowNulls)
@@ -92,7 +93,13 @@ namespace Mata.Emit
                 methodDictionary = MapEmitAssembly.DataRecordGetMethods;
             }
 
-            return methodDictionary[field.DestinationProperty.PropertyType];
+            if (field.TypeConverter != null)
+            {
+                var parameters = field.TypeConverter.GetParameters();
+                propertyType = parameters[0].ParameterType;
+            }
+
+            return methodDictionary[propertyType];
         }
 
         private static void EmitDefaultValueConstant(ILGenerator code, FieldMapDefinition field)
@@ -385,8 +392,12 @@ namespace Mata.Emit
 
             EmitDefaultValueConstant(code, field);
 
-            ////code.EmitCall(field.AllowNulls || field.IsSqlServerSpecific ? OpCodes.Call : OpCodes.Callvirt, getMethod, null);
             code.EmitCall(getMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, getMethod, null);
+
+            if (field.TypeConverter != null)
+            {
+                code.EmitCall(OpCodes.Call, field.TypeConverter, null);
+            }
 
             WrapWithNullableIfNeeded(code, field);
 

@@ -15,6 +15,23 @@ namespace Mata.Test
         public MapEmitTest()
         {
             MapEmitAssembly.EmitDebugSymbols = true;
+            MapEmitAssembly.RegisterTypeConverter<Guid, ShortGuid>((guid) => Convert(guid));
+            MapEmitAssembly.RegisterTypeConverter<Guid?, ShortGuid?>((guid) => Convert(guid));
+        }
+
+        public static ShortGuid Convert(Guid guid)
+        {
+            return new ShortGuid(guid);
+        }
+
+        public static ShortGuid? Convert(Guid? guid)
+        {
+            if (guid.HasValue)
+            {
+                return new ShortGuid(guid.Value);
+            }
+
+            return null;
         }
 
         [Fact]
@@ -251,6 +268,25 @@ namespace Mata.Test
 
             // Assert
             Assert.Equal(guid, item.GuidProperty);
+        }
+
+        [Fact]
+        public void MapGetShortGuidWithTypeConverter()
+        {
+            // Arrange
+            var mapDefinition = new MapDefinition<TestModel>();
+            mapDefinition.Map(model => model.ShortGuidProperty);
+            var map = mapDefinition.CreateMap();
+            var guid = Guid.NewGuid();
+            var reader = SetupGetGuidFromReader("ShortGuidProperty", guid);
+
+            // Act
+            var item = new TestModel();
+            map.LoadOrdinals(reader);
+            map.Load(item, reader);
+
+            // Assert
+            Assert.Equal(guid, item.ShortGuidProperty.Guid);
         }
 
         [Fact]
@@ -502,6 +538,26 @@ namespace Mata.Test
         }
 
         [Fact]
+        public void MapGetNullableShortGuidWithTypeConverter()
+        {
+            // Arrange
+            var mapDefinition = new MapDefinition<TestModel>();
+            mapDefinition.Map(model => model.NullableShortGuidProperty);
+            var map = mapDefinition.CreateMap();
+            var guid = Guid.NewGuid();
+            var reader = SetupGetGuidFromReader("NullableShortGuidProperty", guid);
+
+            // Act
+            var item = new TestModel();
+            map.LoadOrdinals(reader);
+            map.Load(item, reader);
+
+            // Assert
+            Assert.NotNull(item.NullableShortGuidProperty);
+            Assert.Equal(guid, item.NullableShortGuidProperty.Value.Guid);
+        }
+
+        [Fact]
         public void MapGetNullableBoolWithNull()
         {
             // Arrange
@@ -734,6 +790,24 @@ namespace Mata.Test
 
             // Assert
             Assert.Null(item.NullableGuidProperty);
+        }
+
+        [Fact]
+        public void MapGetNullableShortGuidWithTypeConverterWithNull()
+        {
+            // Arrange
+            var mapDefinition = new MapDefinition<TestModel>();
+            mapDefinition.Map(model => model.NullableShortGuidProperty);
+            var map = mapDefinition.CreateMap();
+            var reader = GetDataRecordWithNullColumn("NullableShortGuidProperty");
+
+            // Act
+            var item = new TestModel();
+            map.LoadOrdinals(reader);
+            map.Load(item, reader);
+
+            // Assert
+            Assert.Null(item.NullableShortGuidProperty);
         }
 
         [Fact]

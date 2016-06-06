@@ -13,13 +13,15 @@ namespace Mata
             string sourceColumn,
             bool allowNulls,
             object defaultValue,
-            bool isSqlServerSpecific)
+            bool isSqlServerSpecific,
+            MethodInfo typeConverter)
         {
             this.DestinationProperty = destinationProperty;
             this.SourceColumn = sourceColumn;
             this.AllowNulls = allowNulls;
             this.DefaultValue = defaultValue;
             this.IsSqlServerSpecific = isSqlServerSpecific;
+            this.TypeConverter = typeConverter;
         }
 
         public PropertyInfo DestinationProperty { get; }
@@ -31,5 +33,7 @@ namespace Mata
         public object DefaultValue { get; }
 
         public bool IsSqlServerSpecific { get; }
+
+        public MethodInfo TypeConverter { get; }
     }
 }
