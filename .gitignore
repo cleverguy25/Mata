@@ -5,6 +5,8 @@
 /.vs
 /Mata/bin
 /Mata/obj
+/MataCore/bin
+/MataCore/obj
 /Mata.Test/bin
 /Mata.Test/obj
 /MataPackage/bin
