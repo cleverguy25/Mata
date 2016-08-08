@@ -5,6 +5,9 @@
 /.vs
 /Mata/bin
 /Mata/obj
+/MataCore/bin
+/MataCore/obj
+/MataCore/project.lock.json
 /Mata.Test/bin
 /Mata.Test/obj
 /MataPackage/bin
