@@ -10,5 +10,8 @@
 /MataCore/project.lock.json
 /Mata.Test/bin
 /Mata.Test/obj
+/MataCore.Test/bin
+/MataCore.Test/obj
+/MataCore.Test/project.lock.json
 /MataPackage/bin
 /MataPackage/obj
