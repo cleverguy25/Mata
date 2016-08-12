@@ -8,7 +8,7 @@ namespace Mata
     using System.Collections;
     using System.Collections.Generic;
     using System.Data;
-    using MataCore;
+    using Mata;
 
     public class ParameterSet
     {
