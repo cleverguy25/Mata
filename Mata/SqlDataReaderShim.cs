@@ -172,12 +172,20 @@ namespace Mata
 
         public void Close()
         {
+#if NETSTANDARD1_6
+            throw new NotImplementedException();
+#else
             this.reader.Close();
+#endif
         }
 
         public DataTable GetSchemaTable()
         {
+#if NETSTANDARD1_6
+            throw new NotImplementedException();
+#else
             return this.reader.GetSchemaTable();
+#endif
         }
 
         public bool NextResult()

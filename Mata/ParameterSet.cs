@@ -8,6 +8,7 @@ namespace Mata
     using System.Collections;
     using System.Collections.Generic;
     using System.Data;
+    using MataCore;
 
     public class ParameterSet
     {
@@ -33,7 +34,11 @@ namespace Mata
 
         private static IDataParameter CopyParameter(object parameter)
         {
+#if NETSTANDARD1_6
+            return Cloner.CloneWithIL((IDataParameter)parameter);
+#else
             return (IDataParameter)((ICloneable)parameter).Clone();
+#endif
         }
 
         private static Dictionary<string, IDataParameter> ConvertParametersToDictionary(IList originalParameters)

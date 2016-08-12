@@ -38,10 +38,13 @@ namespace Mata.Emit
         public MapEmit(MapDefinition<T> mapDefinition)
         {
             this.mapDefinition = mapDefinition;
+
+#if !NETSTANDARD1_6
             if (MapEmitAssembly.EmitDebugSymbols)
             {
                 this.mapEmitDebugInfo = new MapEmitDebugInfo<T>(TypeNamespace, this.GetTypeName(), this.GetClassName());
             }
+#endif
         }
 
         public Func<IMap<T>> Generate()
@@ -61,7 +64,12 @@ namespace Mata.Emit
                 this.ImplementSqlDataReaderInterface();
             }
 
+#if NETSTANDARD1_6
+            var typeInfo = this.typeBuilder.CreateTypeInfo();
+            var type = typeInfo.AsType();
+#else
             var type = this.typeBuilder.CreateType();
+#endif
             this.mapEmitDebugInfo?.AddDebugEndFile();
             return GenerateFactoryMethod(type);
         }
@@ -407,7 +415,11 @@ namespace Mata.Emit
             code.Emit(OpCodes.Ldarg_2);
             code.Emit(OpCodes.Callvirt, destinationProperty.GetMethod);
 
+#if NETSTANDARD1_6
+            if (propertyType.GetTypeInfo().IsValueType)
+#else
             if (propertyType.IsValueType)
+#endif
             {
                 code.Emit(OpCodes.Box, propertyType);
             }
@@ -428,7 +440,11 @@ namespace Mata.Emit
             code.Emit(OpCodes.Ldarg_2);
             code.Emit(OpCodes.Callvirt, destinationProperty.GetMethod);
 
+#if NETSTANDARD1_6
+            if (propertyType.GetTypeInfo().IsValueType)
+#else
             if (propertyType.IsValueType)
+#endif
             {
                 code.Emit(OpCodes.Box, propertyType);
             }
