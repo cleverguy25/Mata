@@ -7,7 +7,10 @@ namespace Mata
     using System;
     using System.Collections.Concurrent;
     using System.Data;
+
+#if !NETSTANDARD1_6
     using System.Data.OleDb;
+#endif
     using System.Data.SqlClient;
 
     public class ParameterCache
@@ -38,8 +41,9 @@ namespace Mata
                 return parameters;
             }
 
+#if !NETSTANDARD1_6
             DeriveParametersFromConnection(command);
-
+#endif
             return this.AddParametersToCache(command);
         }
 
@@ -49,6 +53,7 @@ namespace Mata
             return $"{connectionString}:{command.CommandText}";
         }
 
+#if !NETSTANDARD1_6
         private static void DeriveParametersFromConnection(IDbCommand command)
         {
             var sqlCommand = command as SqlCommand;
@@ -69,5 +74,6 @@ namespace Mata
                 nameof(command),
                 $"Cannot derive parameters for command type [{command.GetType().Name}].");
         }
+#endif
     }
 }

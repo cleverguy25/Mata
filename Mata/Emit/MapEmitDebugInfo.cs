@@ -4,13 +4,14 @@
 
 namespace Mata.Emit
 {
+#if !NETSTANDARD1_6
     using System.Diagnostics.SymbolStore;
     using System.IO;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Text;
 
-    public class MapEmitDebugInfo<T>
+    public class MapEmitDebugInfo<T> : IMapEmitDebugInfo<T>
     {
         private readonly string className;
 
@@ -181,6 +182,7 @@ namespace Mata.Emit
             }
 
             code.MarkSequencePoint(this.symbolDocumentWriter, this.line, 1, this.line, lineText.Length);
+
             this.AddDebugLine(lineText);
         }
 
@@ -190,4 +192,5 @@ namespace Mata.Emit
             this.line++;
         }
     }
+#endif
 }

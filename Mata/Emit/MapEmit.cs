@@ -19,7 +19,7 @@ namespace Mata.Emit
 
         private readonly MapDefinition<T> mapDefinition;
 
-        private readonly MapEmitDebugInfo<T> mapEmitDebugInfo;
+        private readonly IMapEmitDebugInfo<T> mapEmitDebugInfo;
 
         private ConstructorBuilder defaultConstructor;
 
@@ -38,10 +38,13 @@ namespace Mata.Emit
         public MapEmit(MapDefinition<T> mapDefinition)
         {
             this.mapDefinition = mapDefinition;
+
+#if !NETSTANDARD1_6
             if (MapEmitAssembly.EmitDebugSymbols)
             {
                 this.mapEmitDebugInfo = new MapEmitDebugInfo<T>(TypeNamespace, this.GetTypeName(), this.GetClassName());
             }
+#endif
         }
 
         public Func<IMap<T>> Generate()
@@ -60,7 +63,7 @@ namespace Mata.Emit
                 this.CreateLoadSqlDataReaderMethod();
                 this.ImplementSqlDataReaderInterface();
             }
-
+            
             var type = this.typeBuilder.CreateType();
             this.mapEmitDebugInfo?.AddDebugEndFile();
             return GenerateFactoryMethod(type);
@@ -406,8 +409,8 @@ namespace Mata.Emit
             code.Emit(OpCodes.Ldstr, sourceColumn);
             code.Emit(OpCodes.Ldarg_2);
             code.Emit(OpCodes.Callvirt, destinationProperty.GetMethod);
-
-            if (propertyType.IsValueType)
+            
+            if (propertyType.IsValueType())
             {
                 code.Emit(OpCodes.Box, propertyType);
             }
@@ -427,8 +430,8 @@ namespace Mata.Emit
             code.Emit(OpCodes.Ldstr, sourceColumn);
             code.Emit(OpCodes.Ldarg_2);
             code.Emit(OpCodes.Callvirt, destinationProperty.GetMethod);
-
-            if (propertyType.IsValueType)
+            
+            if (propertyType.IsValueType())
             {
                 code.Emit(OpCodes.Box, propertyType);
             }

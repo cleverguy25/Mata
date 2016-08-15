@@ -8,7 +8,9 @@ namespace Mata.Emit
     using System.Collections.Generic;
     using System.Data;
     using System.Diagnostics;
+#if !NETSTANDARD1_6
     using System.Diagnostics.SymbolStore;
+#endif
     using System.Reflection;
     using System.Reflection.Emit;
 
@@ -59,9 +61,10 @@ namespace Mata.Emit
 
         public static MethodInfo GetOrdinalsMethod => GetOrdinalsMethodInstance.Value;
 
+#if !NETSTANDARD1_6
         public static ISymbolDocumentWriter CreateDocumentWriter(string name)
             => ModuleBuilder.DefineDocument(name, Guid.Empty, Guid.Empty, Guid.Empty);
-
+#endif
         public static void CheckValidType(PropertyInfo destinationProperty)
         {
             var type = destinationProperty.PropertyType;
@@ -102,7 +105,9 @@ namespace Mata.Emit
 
         public static void SaveAssembly()
         {
+#if !NETSTANDARD1_6
             assemblyBuilder.Save(AssemblyName.Name + ".dll");
+#endif
         }
 
         private static Dictionary<Type, MethodInfo> LoadDataRecordGetMethods()
@@ -203,6 +208,15 @@ namespace Mata.Emit
 
         private static ModuleBuilder LoadModuleBuilder()
         {
+#if NETSTANDARD1_6
+            assemblyBuilder =
+                AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()),
+            AssemblyBuilderAccess.Run);
+
+            SetDebugAttributeIfNeeded();
+
+            var moduleBuilder = assemblyBuilder.DefineDynamicModule(AssemblyName.Name);
+#else
             assemblyBuilder =
                 AppDomain.CurrentDomain.DefineDynamicAssembly(
                     AssemblyName,
@@ -214,7 +228,7 @@ namespace Mata.Emit
                                                     AssemblyName.Name,
                                                     AssemblyName.Name + ".dll",
                                                     EmitDebugSymbols);
-
+#endif
             return moduleBuilder;
         }
 
