@@ -29,5 +29,14 @@ namespace Mata
                    propertyType.GetGenericTypeDefinition() == typeof(Nullable<>);
 #endif
         }
+
+        public static bool IsValueType(this Type propertyType)
+        {
+#if NETSTANDARD1_6
+            return propertyType.GetTypeInfo().IsValueType;
+#else
+            return propertyType.IsValueType;
+#endif
+        }
     }
 }

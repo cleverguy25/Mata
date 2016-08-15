@@ -19,7 +19,7 @@ namespace Mata.Emit
 
         private readonly MapDefinition<T> mapDefinition;
 
-        private readonly MapEmitDebugInfo<T> mapEmitDebugInfo;
+        private readonly IMapEmitDebugInfo<T> mapEmitDebugInfo;
 
         private ConstructorBuilder defaultConstructor;
 
@@ -63,13 +63,8 @@ namespace Mata.Emit
                 this.CreateLoadSqlDataReaderMethod();
                 this.ImplementSqlDataReaderInterface();
             }
-
-#if NETSTANDARD1_6
-            var typeInfo = this.typeBuilder.CreateTypeInfo();
-            var type = typeInfo.AsType();
-#else
+            
             var type = this.typeBuilder.CreateType();
-#endif
             this.mapEmitDebugInfo?.AddDebugEndFile();
             return GenerateFactoryMethod(type);
         }
@@ -414,12 +409,8 @@ namespace Mata.Emit
             code.Emit(OpCodes.Ldstr, sourceColumn);
             code.Emit(OpCodes.Ldarg_2);
             code.Emit(OpCodes.Callvirt, destinationProperty.GetMethod);
-
-#if NETSTANDARD1_6
-            if (propertyType.GetTypeInfo().IsValueType)
-#else
-            if (propertyType.IsValueType)
-#endif
+            
+            if (propertyType.IsValueType())
             {
                 code.Emit(OpCodes.Box, propertyType);
             }
@@ -439,12 +430,8 @@ namespace Mata.Emit
             code.Emit(OpCodes.Ldstr, sourceColumn);
             code.Emit(OpCodes.Ldarg_2);
             code.Emit(OpCodes.Callvirt, destinationProperty.GetMethod);
-
-#if NETSTANDARD1_6
-            if (propertyType.GetTypeInfo().IsValueType)
-#else
-            if (propertyType.IsValueType)
-#endif
+            
+            if (propertyType.IsValueType())
             {
                 code.Emit(OpCodes.Box, propertyType);
             }

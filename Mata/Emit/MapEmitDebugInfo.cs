@@ -6,13 +6,12 @@ namespace Mata.Emit
 {
 #if !NETSTANDARD1_6
     using System.Diagnostics.SymbolStore;
-#endif
     using System.IO;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Text;
 
-    public class MapEmitDebugInfo<T>
+    public class MapEmitDebugInfo<T> : IMapEmitDebugInfo<T>
     {
         private readonly string className;
 
@@ -24,9 +23,8 @@ namespace Mata.Emit
 
         private int line = 1;
 
-#if !NETSTANDARD1_6
         private ISymbolDocumentWriter symbolDocumentWriter;
-#endif
+
         public MapEmitDebugInfo(string typeNamespace, string typeName, string className)
         {
             this.typeNamespace = typeNamespace;
@@ -36,9 +34,7 @@ namespace Mata.Emit
 
         public void CreateDebugSymbols()
         {
-#if !NETSTANDARD1_6
             this.symbolDocumentWriter = MapEmitAssembly.CreateDocumentWriter(this.GetDebugSymbolName());
-#endif
             this.debugBuilder = new StringBuilder();
         }
 
@@ -148,9 +144,7 @@ namespace Mata.Emit
 
         public void SetLocalVariableName(LocalBuilder parametersLocal)
         {
-#if !NETSTANDARD1_6
             parametersLocal.SetLocalSymInfo("parameters");
-#endif
         }
 
         private static string GetDefaultValue(FieldMapDefinition field)
@@ -182,14 +176,13 @@ namespace Mata.Emit
 
         private void AddDebugSymbolLine(ILGenerator code, string lineText)
         {
-#if !NETSTANDARD1_6
             if (this.symbolDocumentWriter == null)
             {
                 return;
             }
 
             code.MarkSequencePoint(this.symbolDocumentWriter, this.line, 1, this.line, lineText.Length);
-#endif
+
             this.AddDebugLine(lineText);
         }
 
@@ -199,4 +192,5 @@ namespace Mata.Emit
             this.line++;
         }
     }
+#endif
 }
